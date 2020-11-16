@@ -34,7 +34,6 @@ public class ProductsCollector {
      * @return Set of links to sales products of the provided category
      * @throws IOException because of http connection
      */
-    @SuppressWarnings("unchecked")
     public Set<String> getSalesProductsLinks(String link, int limit, int lastPage) throws IOException {
         Set<String> productsLinks = new LinkedHashSet<>();
 
@@ -49,7 +48,7 @@ public class ProductsCollector {
             page++;
         } while (productsLinks.size() < limit + 1 || page < lastPage + 1);
 
-        return (Set<String>) cutTailAfterLimit(productsLinks, limit);
+        return cutTailAfterLimit(productsLinks, limit);
     }
 
     /**
@@ -59,22 +58,21 @@ public class ProductsCollector {
      * @return Set of sales products of the provided category
      * @throws IOException because of http connection
      */
-    @SuppressWarnings("unchecked")
     public Set<Product> getSalesProducts(String link, int limit, int lastPage) throws IOException {
-        Set<Product> productsLinks = new LinkedHashSet<>();
+        Set<Product> products = new LinkedHashSet<>();
 
         int page = 1;
         do {
             LOGGER.log(Level.INFO, "Searching products on link... {0}", link);
             Document doc = ConnectionHandler.getDocument(link);
-            productsLinks.addAll(getSalesProductsOnPage(doc));
+            products.addAll(getSalesProductsOnPage(doc));
             //todo set Level.FINE
-            LOGGER.log(Level.INFO, "productsLinks.size()={0} on page={1}", new Object[]{productsLinks.size(), page});
+            LOGGER.log(Level.INFO, "productsLinks.size()={0} on page={1}", new Object[]{products.size(), page});
             link = nextPageLink(link);
             page++;
-        } while (productsLinks.size() < limit + 1 && page < lastPage + 1);
+        } while (products.size() < limit + 1 && page < lastPage + 1);
 
-        return (Set<Product>) cutTailAfterLimit(productsLinks, limit);
+        return cutTailAfterLimit(products, limit);
     }
 
     /**
@@ -159,7 +157,7 @@ public class ProductsCollector {
         return link;
     }
 
-    private Set<?> cutTailAfterLimit(Set<?> set, int limit) {
+    private <T> Set<T> cutTailAfterLimit(Set<T> set, int limit) {
         if (set.size() > limit) {
             set = set.stream()
                      .limit(limit)
@@ -168,7 +166,7 @@ public class ProductsCollector {
         return set;
     }
 
-    private void cutTailAfterLimit(List<?> list, int limit) {
+    private <T> void cutTailAfterLimit(List<T> list, int limit) {
         if (list.size() > limit) {
             list.subList(limit, list.size()).clear();
         }
